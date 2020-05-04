@@ -108,7 +108,76 @@ import FloatOps._
     assert(res, s"Body not found in the right sector")
   }
 
+  @Test def `simulator updateBoundaries works`: Unit = {
+    val model = new SimulationModel
+    val s = new Simulator(model.taskSupport, model.timeStats)
+    val boundaries = new Boundaries
+    boundaries.minX = 1f
+    boundaries.maxX = 5f
+    boundaries.minY = 1f
+    boundaries.maxY = 5f
+
+    val bodyInside = new Body(1f, 3f, 3f, 1f, 1f)
+    val bodyLeft = new Body(1f, 0f, 3f, 1f, 1f)
+    val bodyRight = new Body(1f, 6f, 3f, 1f, 1f)
+    val bodyAbove = new Body(1f, 3f, 0f, 1f, 1f)
+    val bodyBelow = new Body(1f, 3f, 6f, 1f, 1f)
+
+    assert(compareBoundaries(s.updateBoundaries(boundaries, bodyInside), boundaries), s"Body inside")
+    val boundariesLeft = new Boundaries
+    boundariesLeft.minX = 0f
+    boundariesLeft.maxX = 5f
+    boundariesLeft.minY = 1f
+    boundariesLeft.maxY = 5f
+    assert(compareBoundaries(s.updateBoundaries(boundaries, bodyLeft), boundariesLeft), s"Body left")
+    val boundariesRight = new Boundaries
+    boundariesRight.minX = 1f
+    boundariesRight.maxX = 6f
+    boundariesRight.minY = 1f
+    boundariesRight.maxY = 5f
+    assert(compareBoundaries(s.updateBoundaries(boundaries, bodyRight), boundariesRight), s"Body right")
+    val boundariesAbove = new Boundaries
+    boundariesAbove.minX = 1f
+    boundariesAbove.maxX = 5f
+    boundariesAbove.minY = 0f
+    boundariesAbove.maxY = 5f
+    assert(compareBoundaries(s.updateBoundaries(boundaries, bodyAbove), boundariesAbove), s"Body above")
+    val boundariesBelow = new Boundaries
+    boundariesBelow.minX = 1f
+    boundariesBelow.maxX = 5f
+    boundariesBelow.minY = 1f
+    boundariesBelow.maxY = 6f
+    assert(compareBoundaries(s.updateBoundaries(boundaries, bodyBelow), boundariesBelow), s"Body below")
+  }
+
+  @Test def `simulator mergeBoundaries works`: Unit = {
+    val model = new SimulationModel
+    val s = new Simulator(model.taskSupport, model.timeStats)
+    val a = new Boundaries
+    a.minX = 1f
+    a.maxX = 6f
+    a.minY = 0f
+    a.maxY = 5f
+
+    val b = new Boundaries
+    b.minX = 0f
+    b.maxX = 5f
+    b.minY = 1f
+    b.maxY = 6f
+
+    val boundaries = new Boundaries
+    boundaries.minX = 0f
+    boundaries.maxX = 6f
+    boundaries.minY = 0f
+    boundaries.maxY = 6f
+    assert(compareBoundaries(s.mergeBoundaries(a, b), boundaries), s"Body inside")
+  }
+
   @Rule def individualTestTimeout = new org.junit.rules.Timeout(10 * 1000)
+
+  def compareBoundaries(a: Boundaries, b: Boundaries): Boolean = {
+    a.minX == b.minX && a.maxX == b.maxX && a.minY == b.minY && a.maxY == b.maxY
+  }
 }
 
 object FloatOps {
